@@ -30,3 +30,8 @@ https://github.com/fh-muenster-bde-bmt/chord-progression-analyzer/tree/master/Fo
 https://github.com/fh-muenster-bde-bmt/chord-progression-analyzer/tree/master/chord_project
 
 
+Oozie-Shellskripte
+
+https://github.com/fh-muenster-bde-bmt/chord-progression-analyzer/tree/master/oozie
+
+
