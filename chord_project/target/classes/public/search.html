@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<title>Chord Search Project</title>
+
+
+<link
+	href="http://cdn.jsdelivr.net/webjars/bootstrap/3.3.4/css/bootstrap.min.css"
+	th:href="@{/webjars/bootstrap/3.3.4/css/bootstrap.min.css}"
+	rel="stylesheet" media="screen" />
+
+<script src="http://cdn.jsdelivr.net/webjars/jquery/2.1.4/jquery.min.js"
+	th:src="@{/webjars/jquery/2.1.4/jquery.min.js}"></script>
+
+<link
+	href="http://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
+	rel="stylesheet"></link>
+
+<link href="../static/css/bootstrap.css" th:href="@{/css/bootstrap.css}"
+	rel="stylesheet" media="screen" />
+
+
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+<script>
+	$(function() {
+		var URL_PREFIX = "http://10.60.67.3:8983/solr/bde/select?q=title:";
+		var URL_MIDDLE = "OR title_ngram:";
+		var URL_SUFFIX = "&wt=json";
+		$("#ngramBoxTitle").autocomplete(
+				{
+					source : function(request, response) {
+						var searchString = "\"" + $("#ngramBoxTitle").val()
+								+ "\"";
+						var URL = URL_PREFIX + searchString + URL_MIDDLE
+								+ searchString + URL_SUFFIX;
+						$.ajax({
+							url : URL,
+							success : function(data) {
+								var docs = JSON.stringify(data.response.docs);
+								var jsonData = JSON.parse(docs);
+								response($.map(jsonData, function(value, key) {
+									return {
+										label : value.title
+									}
+								}));
+							},
+							dataType : 'jsonp',
+							jsonp : 'json.wrf'
+						});
+					},
+					minLength : 1
+				})
+	});
+
+	$(function() {
+		var URL_PREFIX = "http://10.60.67.3:8983/solr/bde/select?q=artist:";
+		var URL_MIDDLE = "OR artist_ngram:";
+		var URL_SUFFIX = "&wt=json";
+		$("#ngramBoxArtist").autocomplete(
+				{
+					source : function(request, response) {
+						var searchString = "\"" + $("#ngramBoxArtist").val()
+								+ "\"";
+						var URL = URL_PREFIX + searchString + URL_MIDDLE
+								+ searchString + URL_SUFFIX;
+						$.ajax({
+							url : URL,
+							success : function(data) {
+								var docs = JSON.stringify(data.response.docs);
+								var jsonData = JSON.parse(docs);
+								response($.map(jsonData, function(value, key) {
+									return {
+										label : value.artist
+									}
+								}));
+							},
+							dataType : 'jsonp',
+							jsonp : 'json.wrf'
+						});
+					},
+					minLength : 1
+				})
+	});
+
+	function on_data(data) {
+		$('#results').empty();
+		var docs = data.response.docs;
+
+		$
+				.each(
+						docs,
+						function(i, item) {
+							$('#results')
+									.prepend(
+											$('<tr> <td>'
+													+ item.artist
+													+ '</td><td>'
+													+ item.title
+													+ '</td><td><a href="\http://localhost:8080/result.html?id='
+													+ item.id
+													+ '&artist='
+													+ item.artist
+													+ '&title='
+													+ item.title
+													+ ' "\>Auswählen<\a></button></td></tr>'));
+
+						});
+
+		if (docs.length > 0) {
+
+			$('#results')
+					.prepend(
+							$('<thead> <tr> <th>Künstler</th> <th>Titel</th> </tr> </thead>'));
+
+			$(document).ready(on_ready);
+		} else {
+			$('#results').prepend(
+					$('<tr><td>Keine Ergebnisse gefunden.</td></tr>'));
+		}
+	}
+
+	function on_search() {
+
+		var queryArtist = $('#ngramBoxArtist').val();
+		if (queryArtist.length == 0) {
+			queryArtist = "*";
+		}
+
+		var queryTitle = $('#ngramBoxTitle').val();
+		if (queryTitle.length == 0) {
+			queryTitle = "*";
+		}
+
+		var url = 'http://10.60.67.3:8983/solr/bde/select?q=artist:"'
+				+ queryArtist
+				+ '" + AND + title:"'
+				+ queryTitle
+				+ '"&version=2.2&start=0&rows=50&indent=on&wt=json&callback=?&json.wrf=on_data';
+		$.getJSON(url);
+	}
+
+	function on_ready() {
+		$('#search').click(on_search);
+
+		$('body').keypress(function(e) {
+			if (e.keyCode == '13') {
+				on_search();
+			}
+		});
+
+	}
+
+	$(document).ready(on_ready);
+</script>
+</head>
+
+<body>
+
+	<div class="container">
+		<div class="jumbotron">
+			<h1>Chord Search</h1>
+			<p>Welche Songs haben die größte Übereinstimmung?</p>
+		</div>
+		<div class="row">
+			<div class="col-sm-4">
+				<h3>1. Künstler</h3>
+				<p>Geben Sie bitte hier den Künstler des Songs ein.</p>
+				<input id="ngramBoxArtist" class="form-control"></input>
+			</div>
+			<div class="col-sm-4">
+				<h3>2. Titel</h3>
+				<p>Geben Sie bitte hier den Titel des Songs ein.</p>
+				<input id="ngramBoxTitle" class="form-control"></input>
+			</div>
+			<div class="col-sm-4">
+				<h3>3. Los geht's!</h3>
+				<p style="color: white;">.</p>
+				<button id="search" class="btn btn-primary">Suchen</button>
+			</div>
+		</div>
+		<hr />
+		<table class="table table-striped" id="results">
+		</table>
+	</div>
+
+</body>
+</html>
