@@ -135,11 +135,13 @@ public class App
 			retryCount++;
 		} while(retry && retryCount < 21);
 
-		JSONArray array = (JSONArray) root.get("data");
 		final List<String> trackIds = new ArrayList<String>();
-		if(array.length() > 0){
-			for(int i=0; i < array.length();i++){
-				trackIds.add((String) array.getJSONObject(i).get("id"));
+		if(root != null){
+			JSONArray array = (JSONArray) root.get("data");
+			if(array != null && array.length() > 0){
+				for(int i=0; i < array.length();i++){
+					trackIds.add((String) array.getJSONObject(i).get("id"));
+				}
 			}
 		}
     	return trackIds;
@@ -180,23 +182,25 @@ public class App
 					retryCount++;
 				} while(retry && retryCount < 21);
 				
-				data = (JSONObject) root.get("data");
-				if(data.length() > 0){
-					JSONArray intervals = (JSONArray) data.get("intervals");
-					for(int i=0; i < intervals.length(); i++){
+				if(root != null){
+					data = (JSONObject) root.get("data");
+					if(data != null && data.length() > 0){
+						JSONArray intervals = (JSONArray) data.get("intervals");
+						for(int i=0; i < intervals.length(); i++){
+							try{
+								song.addInterval(Integer.parseInt((String)intervals.get(i)));
+							} catch(final NumberFormatException e){
+								invalid = true;
+							}
+						}
 						try{
-							song.addInterval(Integer.parseInt((String)intervals.get(i)));
+							song.setMode(Integer.parseInt((String)data.get("mode")));
 						} catch(final NumberFormatException e){
 							invalid = true;
-						}
+						};
+						song.setKey((String)data.get("key"));
+						invalid = false;
 					}
-					try{
-						song.setMode(Integer.parseInt((String)data.get("mode")));
-					} catch(final NumberFormatException e){
-						invalid = true;
-					};
-					song.setKey((String)data.get("key"));
-					invalid = false;
 				}
 				trackIndex++;
 			} while((data.length() == 0 && trackIndex < trackIds.size()) || (invalid && trackIndex < trackIds.size()));
