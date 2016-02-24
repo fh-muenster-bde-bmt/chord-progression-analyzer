@@ -1,5 +1,7 @@
 language: java
 sudo: false
 script: 
- 	sh -c 'cd chord_project && mvn clean verify'
-	sh -c 'cd fetcher && mvn clean verify'
+ 	cd chord_project
+	mvn clean verify
+	cd ../fetcher
+	mvn clean verify
